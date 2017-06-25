@@ -56,55 +56,54 @@ def hist_weibullization(image, k = 2, l = 40):
                 new_image[x, y] = np.floor(pow(abs((np.log(1 - hx))), 1.0/k) * l)
     return new_image
 
-def buildModel(l ,X, nsample = None):
+def buildModel(l ,X, nsample = None, linear = 0):
     h, w = l.shape
     if nsample is None:
         nsample = h*w
 
-    ####estimate parameters
-    # for pretty 3d pic
-    # xs, ys = np.meshgrid(np.arange(w,step=10), np.arange(h,step=10))
-#    xs, ys = np.meshgrid(np.arange(w, step=1), np.arange(h, step=1))
-#    X = np.column_stack((ys.flatten() * xs.flatten(), ys.flatten(), xs.flatten(), np.ones(xs.flatten().__len__())))
     ind = np.random.choice(np.arange(X.__len__()), nsample)
     # for i in np.arange(10) *100 :
     #     print (str(l[ X[i,0], X[i,1] ]) + "   " + str(Z[i]))
-    Z = l[X[ind, 1].astype(int), X[ind, 2].astype(int)]
+    Z = l[X[ind, -linear + 1].astype(int), X[ind, -linear +2].astype(int)]
     params = np.linalg.lstsq(X[ind,:], Z)[0]
     return params
 # inv = np.dot(np.linalg.inv(np.dot(X.T, X)), X.T)
 # params = np.dot(inv, Z)
 
-def main(photo = "portrait", sSize = None):
+def main(photo = "portrait", sSize = None, method = 'linear'):
     im = read_intensity_image("task1.3/images/"+ photo+ ".png")
     l = np.log(im + 1)
     h, w = l.shape
 
     xs, ys = np.meshgrid(np.arange(w,step=1), np.arange(h,step=1))
-    X = np.column_stack((ys.flatten() * xs.flatten(), ys.flatten(), xs.flatten(), np.ones(xs.flatten().__len__())))
-
-    params = buildModel(l, X,sSize)
+    if method=='bilinear':
+        X = np.column_stack((ys.flatten() * xs.flatten(), ys.flatten(), xs.flatten(), np.ones(xs.flatten().__len__())))
+        linear = 0
+    else:
+        X = np.column_stack((ys.flatten(), xs.flatten(), np.ones(xs.flatten().__len__())))
+        linear = 1
+    params = buildModel(l, X,sSize, linear )
     i = np.dot(X, params)
-    rlog = l - np.reshape(i, xs.shape)
+    rlog = l[ys, xs]- np.reshape(i, xs.shape)
 
     r = np.exp(rlog)
     sSize = str(sSize)
-    msc.imsave("task1.3/images/" + photo + "_"+ sSize+"Reflectance.png", r)
+    msc.imsave("task1.3/images/" + photo +"_"+method +"_"+ sSize+"Reflectance.png", r)
     R = ((r - r.min())/(r.max() - r.min()))  * (im.max() - im.min())
-    msc.imsave("task1.3/images/" + photo +"_"+ sSize+ "ReflectanceMeanCentered.png", R)
+    msc.imsave("task1.3/images/" + photo +"_"+method +"_"+ sSize+ "ReflectanceMeanCentered.png", R)
     #R = R - np.mean(R) + np.mean(im)
     Rhist = hist_equalization(R)
-    msc.imsave("task1.3/images/" + photo + "_"+ sSize+"HistEq.png", Rhist )
+    msc.imsave("task1.3/images/" + photo + "_"+method +"_"+ sSize+"HistEq.png", Rhist )
     Rw = hist_weibullization(R)
     Rw = hist_normalization(Rw)
-    msc.imsave("task1.3/images/" + photo + "_"+ sSize+"CompWeq.png", Rw)
+    msc.imsave("task1.3/images/" + photo + "_"+method +"_"+ sSize+"CompWeq.png", Rw)
     if False:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         from matplotlib import cm
         # cm = plt.get_cma  p("RdYlGn")
-        #ax.scatter(X[:,1], X[:,2], i, c=i)
-        ax.scatter(X[:,1], X[:,2], r, c=r)
+        ax.scatter(X[:,1], X[:,2], i, c=i)
+        #ax.scatter(X[:,0], X[:,1], i, c=i)
         plt.show()
 
 if __name__ == '__main__':

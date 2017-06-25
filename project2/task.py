@@ -22,15 +22,20 @@ def pca(X, meanTrain):
     vectors= vectors[:,idx]  # sorting eigenvectors
 
     #define only largest eigen values
-    valuesBig, = np.where((np.cumsum(values) / np.sum(values)) < 0.97)
+    valuesBig, = np.where((np.cumsum(values) / np.sum(values)) < 0.90)
     vectorsBig = vectors[:,valuesBig]
     #eigen vector visualization
-    msc.imshow( np.reshape( vectors[2,:].real, (19,19)))
+#    msc.imshow( np.reshape( vectors[1,:], (obs,dim)))
+    msc.imshow(np.dot(np.diag(values),vectors))
     # projection of the data in the new space
     proj = np.dot(vectors.T, Xnorm)
+
+    proj = np.dot(vectorsBig.T, Xnorm)
+
     # image reconstruction
-    Xr = np.dot(vectors, proj).T + meanTrain
+    Xr = np.dot(vectorsBig, proj).T + meanTrain
     msc.imshow(Xr)
+    #msc.imsave("task1.3/images/pcsIllumination.png", Xr)
 
     dist = []
     # difference in Frobenius norm
