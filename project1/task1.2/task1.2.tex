@@ -1,0 +1,30 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{amsmath,mathrsfs,mathtext} 
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{amssymb}
+% the document
+\begin{document}
+ We know that
+ \begin{equation}y=T(x)\end{equation}      
+ \begin{equation}x=T^{-1}(y)\end{equation}
+ \begin{equation}p_Y(y)=p_X(T^{-1}(y)) \lvert \frac{d}{dy}T^{-1}(y) \rvert\end{equation}
+ \begin{equation}p_Y(y)=\frac{k}{l}*(\frac{y}{l})^{k-1}*e^{-(\frac{y}{l}^k)}\end{equation}
+ \begin{equation}P_Y(y)=1-e^{-(\frac{y}{l})^k}\end{equation}
+ Combining (3) and (5) we have
+ \begin{equation}1-e^{-(\frac{y}{l})^k}=\int_0^y p_X(T^{-1}(z)) \left| \frac{d}{dz}T^{-1}(z)\right|dz\end{equation}
+ Applying integration by substitution
+ \begin{equation}1-e^{-(\frac{y}{l})^k}=\int_0^{T^{-1}(y)} p_X(z)dz\end{equation}
+ Using (1) and (2)
+ \begin{equation}1-e^{-(\frac{T(x)}{l})^k}=\int_0^x p_X(z)dz\end{equation}
+ We approximate probability distribution with normalized histogram
+ \begin{equation}\int_0^x p_X(z)dz \approx \tilde{H}\end{equation}
+ Which means that if $N$ - number of pixels in the image
+ \begin{equation}e^{-(\frac{T(x)}{l})^k}=1-\frac{H(x)}{N}\end{equation}
+ Take logarithm of both sides
+ \begin{equation}-\left(\frac{T(x)}{l}\right)^k=ln\left(1-\frac{H(x)}{N}\right)\end{equation}
+ Multipy both sides by $-l^k$
+ \begin{equation}T(x)^k=ln\left(1-\frac{H(x)}{N}\right)*-l^k\end{equation}
+ And finally take both sides to the power of $1/k$
+ \begin{equation}T(x)=\left\lfloor\left(\left|ln\left(1-\frac{H(x)}{N}\right)\right|\right)^{\frac{1}{k}}*l\right\rfloor\end{equation}
+\end{document}
