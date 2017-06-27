@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import random
 from mpl_toolkits.mplot3d import Axes3D
 import os
+from pylab import imshow
 im = msc.imread("train/face00001.pgm")
 files = os.listdir('train')
 trainNames = random.sample(files, int(len(files)*0.9))
@@ -25,8 +26,10 @@ def pca(X, meanTrain):
     valuesBig, = np.where((np.cumsum(values) / np.sum(values)) < 0.90)
     vectorsBig = vectors[:,valuesBig]
     #eigen vector visualization
-#    msc.imshow( np.reshape( vectors[1,:], (obs,dim)))
-    msc.imshow(np.dot(np.diag(values),vectors))
+    # msc.imshow( np.reshape( vectors[1,:], (obs,dim)))
+    # msc.imshow(np.dot(np.diag(values),vectors))
+    plt.imshow(np.reshape(vectors[0], (19, 19)), 'gray')
+    plt.show()
     # projection of the data in the new space
     proj = np.dot(vectors.T, Xnorm)
 
@@ -40,3 +43,6 @@ def pca(X, meanTrain):
     dist = []
     # difference in Frobenius norm
     dist.append(np.linalg.norm(X - Xr, 'euc'))
+
+pca(X, meanTrain)
+
