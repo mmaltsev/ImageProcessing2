@@ -39,7 +39,7 @@ def eucDistance(test_images, X_train_center):
 def eigenvectorsPlot(eigenvectors, eigenvalues):
 	plt.figure()
 	for index, vector in enumerate(eigenvectors):
-		plt.subplot(mt.ceil(len(eigenvectors)/5.0),5,index)
+		plt.subplot(mt.ceil(len(eigenvectors)/5.0),5,index + 1)
 		current_vector = np.reshape(vector, (19, 19))
 		plt.imshow(current_vector, 'gray')
 		#plt.title(eigenvalues[index] + 1)
