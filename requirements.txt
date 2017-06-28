@@ -4,3 +4,5 @@ matplotlib
 scipy
 PIL
 math
+random
+os
