@@ -1,11 +1,9 @@
-## project 2. eigenfaces.
+## project 2. computing eigenfaces.
 import scipy.misc as msc
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from mpl_toolkits.mplot3d import Axes3D
 import os
-from pylab import imshow
 from scipy.spatial import distance as dist
 import math as mt
 
@@ -77,7 +75,7 @@ def sampling():
 	test_names = [name for name in files if name not in train_names]
 	return train_names, test_names
 
-def main():
+def pca():
 	# (1) - download and unzip archive with faces.
 	
 	# (2) - randomly select 90% for X_train and remaining for X_test.
@@ -129,4 +127,4 @@ def main():
 	# and lower dim. spaces.
 	distanceComparison(distances, low_dim_distances)
 
-main()
+pca()
