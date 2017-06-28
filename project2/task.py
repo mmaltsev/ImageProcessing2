@@ -65,7 +65,7 @@ def covMatrixComputation(X_train, X_center):
   obs, dim = X_train.shape
   C = np.cov(X_center)
   values, vectors = np.linalg.eigh(C)
-  return C, vectors, values
+  return C, vectors.T, values
 
 def readAndCenter(names):
   X = np.stack([msc.imread('train/' + f).flatten() for f in names], axis=0)
@@ -123,7 +123,7 @@ def pca():
   # (4) - compute the cov. matrix with its eigenvectors and eigenvalues.
   C, eigenvectors, eigenvalues = \
     covMatrixComputation(X_train, X_train_center)
-  
+
   # (5) - plot the spectrum of C (sorted eigenvalues).
   eigenvectors, eigenvalues, X_train_center = \
     descSort(eigenvectors, eigenvalues, X_train_center)
