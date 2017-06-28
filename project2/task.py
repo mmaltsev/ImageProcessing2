@@ -25,11 +25,8 @@ def distanceComparison(distances, low_dim_distances):
 def distancesPlot(distances, prefix):
   plt.figure()
   for index, distance in enumerate(distances):
-    #plt.figure()
     plt.plot(distance)
     plt.savefig('img/' + str(prefix) + 'distances_combined')
-    #plt.savefig('img/distance_' + str(index + 1))
-    #plt.show()
 
 def eucDistance(test_images, X_train_center):
   distances = []
@@ -48,14 +45,12 @@ def eigenvectorsPlot(eigenvectors, eigenvalues):
     plt.subplot(mt.ceil(len(eigenvectors)/5.0),5,index + 1)
     current_vector = np.reshape(vector, (19, 19))
     plt.imshow(current_vector, 'gray')
-    #plt.title(eigenvalues[index] + 1)
     plt.axis('off')
   plt.savefig('img/vector_combined', bbox_inches='tight')
 
 def covSpectrumPlot(eigenvalues):
   plt.plot(eigenvalues)
   plt.savefig('img/cov_spectrum')
-  #plt.show()
 
 def descSort(eigenvectors, eigenvalues, X_train_center):
   idx = np.argsort(eigenvalues)[::-1]
@@ -70,18 +65,8 @@ def covMatrixComputation(X_train, X_center):
 def readAndCenter(names):
   X = np.stack([msc.imread('train/' + f).flatten() for f in names], axis=0)
   mean = np.mean(X, axis=0)
-
   # subtract the mean (along columns)
-  # print X.shape
-  # print mean.shape
   X_center = (X - mean).T
-  # print X_center.shape
-  # print X_center.T[0][:10]
-  # print mean[:10]
-  # print X[:10]
-  # draw_image(X_center.T[0], 'centered1')
-  # draw_image(X_center.T[1], 'centered2')
-  # draw_image(X_center.T[2], 'centered3')
   return X, X_center
 
 def sampling():
@@ -90,22 +75,14 @@ def sampling():
   test_names = [name for name in files if name not in train_names]
   return train_names, test_names
 
-def reconstruct_images(data_projection, important_eigenvectors, X_center):
-  '''plt.figure()
-  for index, vector in enumerate(data_projection[:20]):
-    plt.subplot(mt.ceil(len(eigenvectors)/5.0),5,index + 1)
-    current_vector = np.reshape(vector, (19, 19))
-    plt.imshow(current_vector, 'gray')
-    #plt.title(eigenvalues[index] + 1)
-    plt.axis('off')
-  plt.savefig('img/vector_combined', bbox_inches='tight')'''
-  limit = 1
+def reconstruct_images(data_projection, important_eigenvectors):
+  limit = 20
   images = data_projection.T[:limit].T
   reconstructed_images = np.dot(important_eigenvectors.T, images).T
 
   plt.figure()
-  for index, image in enumerate(X_center.T):
-    plt.subplot(mt.ceil(len(X_center.T)/5.0),5,index + 1)
+  for index, image in enumerate(reconstructed_images):
+    plt.subplot(mt.ceil(len(reconstructed_images)/5.0),5,index + 1)
     current_vector = np.reshape(image, (19, 19))
     plt.imshow(current_vector, 'gray')
     plt.axis('off')
@@ -149,7 +126,7 @@ def pca():
   # (10) - project data into the subspace spanned by the k eigenvectors.
   X_center = np.c_[X_train_center, X_test_center]
   data_projection = np.dot(important_eigenvectors, X_center)
-  # reconstruct_images(data_projection, important_eigenvectors, X_center.T[:20].T)
+  reconstruct_images(data_projection, important_eigenvectors)
   
   # (11) - for 10 test images compute Euc. distances to all the training
   # images in the lower dim. space, sort (in desc. order) and plot them.
