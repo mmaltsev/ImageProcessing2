@@ -1,10 +1,10 @@
 ## project 2. computing eigenfaces.
 import scipy.misc as msc
+from scipy.spatial import distance as dist
 import numpy as np
 import matplotlib.pyplot as plt
 import random
 import os
-from scipy.spatial import distance as dist
 import math as mt
 
 def distanceComparison(distances, low_dim_distances):
