@@ -10,4 +10,5 @@
  
 ## Presentations
  project 1 - http://slides.com/maximmaltsev/deck-4
+ 
  project 2 - https://slides.com/maximmaltsev/deck-5
