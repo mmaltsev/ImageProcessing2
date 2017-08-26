@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[4]:
 
 import numpy as np
 import math as mt
@@ -9,7 +9,7 @@ from PIL import Image as im
 from matplotlib import pyplot as plt
 
 
-# In[25]:
+# In[5]:
 
 def read_image(path):
     raw_image = im.open(path)
@@ -27,7 +27,7 @@ def img2arr(img):
     return arr[0]
 
 
-# In[26]:
+# In[6]:
 
 def histogram(image_arr):
     h = [0] * 256
@@ -41,7 +41,7 @@ def plot_hist(hist):
     plt.show()
 
 
-# In[4]:
+# In[7]:
 
 def init_a(L):
     a = [0] * (L + 2)
@@ -57,7 +57,7 @@ def init_b(L):
     return b
 
 
-# In[5]:
+# In[8]:
 
 def density(h):
     sum = 0
@@ -74,7 +74,7 @@ def check_density(p):
     return sum == 1
 
 
-# In[64]:
+# In[9]:
 
 def quantize(img_arr, a, b):
     arr = img_arr[:]
@@ -88,7 +88,7 @@ def quantize(img_arr, a, b):
     return arr
 
 
-# In[65]:
+# In[10]:
 
 def plot_quantization_curve(a, b):
     a_plot = [a[0]]
@@ -108,7 +108,7 @@ def plot_quantization_curve(a, b):
     plt.show()
 
 
-# In[7]:
+# In[11]:
 
 def error(L, a, b, p):
     err = 0
@@ -126,7 +126,7 @@ def error(L, a, b, p):
             
 
 
-# In[66]:
+# In[12]:
 
 def main(folder_path, img_name):
     print img_name
@@ -193,37 +193,11 @@ def main(folder_path, img_name):
     return a, b
 
 
-# In[67]:
+# In[13]:
 
 a1, b1= main('./images', 'bauckhage-gamma-1.png')
 a2, b2 = main('./images', 'bauckhage-gamma-2.png')
 a, b = main('./images', 'bauckhage.jpg')
-
-
-# In[63]:
-
-a_new = a1[:]
-b_new = b1[:]
-
-a_plot = [a_new[0]]
-for i in range(1, len(a_new) - 1):
-    a_plot += [a_new[i]] * 2 
-a_plot.append(a_new[-1])
-
-b_plot = []
-for el in b_new:
-    b_plot += [el] * 2
-b_plot = b_plot[0:-2]
-
-a_plot[0] = 0
-a_plot[-1] = 256
-plt.plot(a_plot, b_plot)
-plt.show()
-
-
-# In[47]:
-
-len(b)
 
 
 # In[ ]:
