@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[4]:
+# In[1]:
 
 import numpy as np
 import math as mt
@@ -9,7 +9,7 @@ from PIL import Image as im
 from matplotlib import pyplot as plt
 
 
-# In[5]:
+# In[2]:
 
 def read_image(path):
     raw_image = im.open(path)
@@ -27,7 +27,7 @@ def img2arr(img):
     return arr[0]
 
 
-# In[6]:
+# In[3]:
 
 def histogram(image_arr):
     h = [0] * 256
@@ -41,7 +41,7 @@ def plot_hist(hist):
     plt.show()
 
 
-# In[7]:
+# In[19]:
 
 def init_a(L):
     a = [0] * (L + 2)
@@ -50,14 +50,46 @@ def init_a(L):
     a[L + 1] = 256
     return a
 
+def init_a_alt(L, img_arr):
+    mi = min(img_arr)
+    ma = max(img_arr)
+    a = [0] * (L + 2)
+    for i in range(1, L + 1):
+        a[i] = mi + float(ma - mi) / L * i
+    a[0] = mi
+    a[-1] = ma
+    return a
+
 def init_b(L):
     b = [0] * (L + 2)
     for i in range(L + 2):
         b[i] = i * 256.0 / L + 256.0 / (2 * L)
     return b
 
+def init_b_alt(L, a):
+    b = [0] * (L + 2)
+    for i in range(0, len(a) - 1):
+        b[i] = (a[i + 1] + a[i]) / 2
+        if a[i + 1] == a[i]:
+            step = b[1] - b[0]
+            b[i] = b[i - 1] + step
+    b[-1] = b[-2] + step
+    return b
+    
+# we want to be sure that in the normal case (when use init_a, not init_a_alt) init_b_alt is
+# fully compatible with init_b
+def test_init_b_alt():
+    L = 8
+    a = init_a(L)
+    b = init_b(L)
+    b_alt = init_b_alt(L, a)
+    assert(len(b) == len(b_alt))
+    assert(b == b_alt)
+    
+test_init_b_alt() 
 
-# In[8]:
+
+# In[5]:
 
 def density(h):
     sum = 0
@@ -74,7 +106,7 @@ def check_density(p):
     return sum == 1
 
 
-# In[9]:
+# In[22]:
 
 def quantize(img_arr, a, b):
     arr = img_arr[:]
@@ -83,12 +115,14 @@ def quantize(img_arr, a, b):
         nu = 0
         while el > a[nu]:
             nu += 1
+            if nu == len(a):
+                break
         intensity = b[nu - 1]
         arr[i] = intensity
     return arr
 
 
-# In[10]:
+# In[7]:
 
 def plot_quantization_curve(a, b):
     a_plot = [a[0]]
@@ -108,7 +142,7 @@ def plot_quantization_curve(a, b):
     plt.show()
 
 
-# In[11]:
+# In[8]:
 
 def error(L, a, b, p):
     err = 0
@@ -126,10 +160,13 @@ def error(L, a, b, p):
             
 
 
-# In[12]:
+# In[24]:
 
-def main(folder_path, img_name):
-    print img_name
+def main(folder_path, img_name, mode = 'default'):
+    if mode == 'default':
+        print img_name
+    else:
+        print img_name, 'Alternative initialization'
     img_path = folder_path + '/' + img_name
     image = read_image(img_path)
     arr = img2arr(image) # transform image to 1*n array.
@@ -140,10 +177,14 @@ def main(folder_path, img_name):
     
     p = density(h)
     assert(check_density(p))
-
+    
     L = 8
-    a = init_a(L) # the first way to init a
-    b = init_b(L)
+    if mode == 'default':
+        a = init_a(L) # the first way to init a
+    else:
+        a = init_a_alt(L, arr)
+    b = init_b_alt(L, a) # initially i used init_b. init_b is not possible to use with init_a_alt, 
+    # as in this case 'a' breaks on the first iteration of the algorithm below.
 
     prev_err = float('inf')
     err = error(L, a, b, p)
@@ -193,11 +234,19 @@ def main(folder_path, img_name):
     return a, b
 
 
-# In[13]:
+# In[25]:
 
-a1, b1= main('./images', 'bauckhage-gamma-1.png')
-a2, b2 = main('./images', 'bauckhage-gamma-2.png')
-a, b = main('./images', 'bauckhage.jpg')
+main('./images', 'bauckhage-gamma-1.png')
+main('./images', 'bauckhage-gamma-2.png')
+main('./images', 'bauckhage.jpg')
+main('./images', 'bauckhage-gamma-1.png', 'alt')
+main('./images', 'bauckhage-gamma-2.png', 'alt')
+main('./images', 'bauckhage.jpg', 'alt')
+
+
+# In[ ]:
+
+
 
 
 # In[ ]:
