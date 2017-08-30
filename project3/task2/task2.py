@@ -2,6 +2,8 @@
 import os
 import numpy as np
 import scipy.misc as msc
+import matplotlib.pyplot as plt
+
 from scipy.linalg import inv
 from sklearn.metrics import precision_recall_curve, auc, accuracy_score, precision_score, recall_score
 from sklearn.metrics import auc
@@ -9,16 +11,14 @@ from re import sub
 TRAIN_FOLDER = 'uiucTrain/'
 TEST_FOLDER = 'uiucTest/'
 
+#get train folder file names and 1,0 class variables
 def getLabels(folder=TRAIN_FOLDER):
     files = os.listdir(folder)
     labels = ['Pos' in name for name in files]
     labels = np.array(labels) * 2 - 1
     return files, labels.astype(float)
 
-
-
-# In[46]:
-
+# read and center image
 def read_and_center(folder, files):
     X = np.stack([msc.imread(folder + '/' + f) for f in files], axis=0)
     shape = X.shape[1:]
@@ -27,31 +27,83 @@ def read_and_center(folder, files):
     X_center = (X - mean)
     return X_center, mean, shape
 
+#euclidean
 def dist(x,y):
     return np.sqrt(np.sum(np.power(x-y, 2)))
 
-def tLDA (eps  = 0.0001):
+# Gram Schmidt procedure
+def GramSchmidt(vectors,  tol=1E-10):
+    # transpose
+    A = np.transpose(np.asarray(vectors)).copy()
+    m, n = A.shape
+    V = np.zeros((m, n))
+    for j in np.arange(n):
+        v0 = A[:, j]
+        v = v0.copy()
+        for i in np.arange(j):
+            vi = V[:, i]
+            if (abs(vi) > tol).any():
+                v -= (np.vdot(v0, vi) / np.vdot(vi, vi)) * vi
+        V[:, j] = v
+    return np.transpose(V)
+
+
+def GramSchmidt2(vectors):
+    basis = []
+    for v in vectors:
+        w = v - np.sum( np.dot(v,b)*b  for b in basis )
+        if (w > 1e-10).any():
+            basis.append(w/np.linalg.norm(w))
+    return np.array(basis)
+
+def normalize (x):
+    return x/np.linalg.norm(x)
+
+#Compute tensor LDA
+def tLDA (eps  = 0.0001, rho = 5):
     #get files
     train_names, y = getLabels(TRAIN_FOLDER)
 
+    #normalize target variables, in order not to create bias towards 0, since the subset of 0 >> subset 1
     for lbl in set(y):
         y[y==lbl] = y[y==lbl] /np.sum(y[y==lbl] )
+
     #get train data, X - tensor, containing images
     X, meanT, shape =read_and_center(TRAIN_FOLDER, train_names)
-    u_ = np.random.rand(1, shape[0])
-    v_ = np.random.rand(1, shape[1])
-    d = np.inf
-    while d > eps:
-        u_old = u_
-        X_ = np.tensordot(u_.flatten(), X, axes=(0,1))
-        v_ = inv( np.dot(X_.T,X_)).dot( X_.T ).dot(y)
-        v_old = v_
-        X_ = np.tensordot(X, v_, axes=(2,0))
-        u_ = inv(np.dot(X_.T, X_)).dot(X_.T).dot(y)
-        d = dist(u_,u_old)
+    u,v = None, None
+    for i in np.arange(rho):
+        # initiate u,v -
+        u_ = np.random.rand(1, shape[0])
+        v_ = np.random.rand(1, shape[1])
+        thresh = np.inf
+        # while u change is larger than threshold
+        u_old = u_.copy()
+        v_old = v_.copy()
+        i = 1
+        while thresh  > eps and i < 1000:
+            X_ = np.tensordot(u_.flatten(), X, axes=(0,1))
+            v_ = inv( np.dot(X_.T,X_)).dot( X_.T ).dot(y)
+            #v_ = inv(np.dot(X_.T, X_)).dot((X_.T).dot(y))
+            if v is not None:
+                v_ = GramSchmidt(np.vstack((v, v_)))[-1]
 
-    W = np.outer(u_,v_.T)
-    #W /= np.max(W)
+            X_ = np.tensordot(X, v_, axes=(2,0))
+            u_ = inv(np.dot(X_.T, X_)).dot(X_.T).dot(y)
+            #u_ = inv(np.dot(X_.T, X_)).dot(X_.T.dot(y))
+            if u is not None:
+                u_ = GramSchmidt(np.vstack((u, u_)))[-1]
+                #u_ = normalize(u_)
+            thresh = abs(dist(u_,u_old))
+            u_old = u_.copy()
+            i+=1
+        v = v_ if v is None else np.vstack((v, v_))
+        u = u_ if u is None else np.vstack((u, u_ ))
+
+    W = np.sum( (np.outer(u[i],v[i].T)for i in np.arange(rho) ))
+    W /= np.linalg.norm(W)
+
+    plt.imshow(W, "Greys")
+    msc.imsave("task2/W.jpg", W)
     return(W, meanT, X)
 
 def predict(W, X,  theta):
@@ -61,9 +113,9 @@ def predict(W, X,  theta):
     return(Yout)
 
 
-def estimateModel(W, X, y):
+def estimateModel(W, X, y,recall_sc):
     ##calculate ROC: presison, recall.
-    thetas = np.arange(-0.004, 0.006, 0.0002)
+    thetas = np.arange(-100, 200, 1)
     accuracy =[]
     precision = []
     recall = []
@@ -80,10 +132,10 @@ def estimateModel(W, X, y):
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
     plt.title('Precision-Recall curve, based on theta')
-    # Empirically we want the value of recall being ~ 0.725
-    plt.axvline(x = 0.725,color = "red")
+    # Empirically we want the value of recall being ~ 0.9
+    plt.axvline(x = recall_sc,color = "red")
     plt.show()
-    i = np.where(np.abs(np.array(recall) - 0.725) < 0.01)[0]
+    i = np.argmin(np.array(recall) - recall_sc)
 
     return thetas[i], precision[i], recall[i], accuracy[i]
 
@@ -121,8 +173,8 @@ def main():
     #aquire train labels
     train_names, y = getLabels(TRAIN_FOLDER)
 
-    theta_best, prec, rec, acc = estimateModel(W, X, y)
+    theta_best, prec, rec, acc = estimateModel(W, X, y, 0.85)
 
-    for img in test_names[16:30]:
-        slidingWindow(img, W,meanT, 0.0035)
+    for img in test_names[1:30]:
+        slidingWindow(img, W,meanT, theta_best)
 
