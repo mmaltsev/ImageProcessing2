@@ -135,7 +135,7 @@ def estimateModel(W, X, y,recall_sc):
     # Empirically we want the value of recall being ~ 0.9
     plt.axvline(x = recall_sc,color = "red")
     plt.show()
-    i = np.argmin(np.array(recall) - recall_sc)
+    i = np.argmin(np.abs(np.array(recall) - recall_sc))
 
     return thetas[i], precision[i], recall[i], accuracy[i]
 
@@ -153,6 +153,7 @@ def slidingWindow(f, W, meanT, threshold):
     Xtest = [img[j :j + W.shape[0], i:i + W.shape[1]] for j in np.arange(h-W.shape[0], step = 2) for i in np.arange(w - W.shape[1], step = 2)]
 
     coord = [(i,j) for j in np.arange(h-W.shape[0], step = 2) for i in np.arange(w - W.shape[1], step = 2)]
+    #predict using precomputed W and X - mu_train
     Ypred = predict(W, np.array(Xtest)-meanT, threshold)
     for coords in np.array(coord)[np.where(Ypred == 1.)[0]]:
         rect = plt.Rectangle(coords, W.shape[1], W.shape[0], edgecolor='r', facecolor='none')
@@ -172,9 +173,10 @@ def main():
 
     #aquire train labels
     train_names, y = getLabels(TRAIN_FOLDER)
-
-    theta_best, prec, rec, acc = estimateModel(W, X, y, 0.85)
+    # Empirically, we want recall == 66%. Greedy recall will match everything,
+    theta_best, prec, rec, acc = estimateModel(W, X, y, 0.66)
 
     for img in test_names[1:30]:
         slidingWindow(img, W,meanT, theta_best)
+        slidingWindow(img, W, meanT, 160)
 
